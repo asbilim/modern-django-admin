@@ -65,7 +65,7 @@ def get_model_metadata(model):
             try:
                 # Construct the API URL for the related model
                 related_url = reverse(f'{related_model._meta.model_name}-list')
-                api_url = f'/api/admin/models{related_url}'
+                api_url = related_url
             except:
                 api_url = None # Could not reverse the URL
 
@@ -105,7 +105,7 @@ def get_admin_site_config():
             # The router registers routes with names like '<model_name>-list'.
             list_url = reverse(f'{model_name}-list')
             # The full path is composed of the router's prefix and the reversed URL.
-            api_url = f'/api/admin/models{list_url}'
+            api_url = list_url
         except:
             # This might fail if a model is registered with the admin
             # but not exposed via the API generator for some reason.
