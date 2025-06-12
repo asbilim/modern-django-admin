@@ -1,13 +1,5 @@
 from .base import *
 
-# Database for development
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
 # Debug toolbar (optional)
 if DEBUG:
     INSTALLED_APPS += ['debug_toolbar']
