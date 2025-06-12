@@ -15,9 +15,11 @@ class AdminAPIGenerator:
         """Generate dynamic serializer based on admin configuration"""
         
         class Meta:
-            model = model
-            fields = '__all__'
-            read_only_fields = getattr(model_admin, 'readonly_fields', [])
+            pass
+        
+        Meta.model = model
+        Meta.fields = '__all__'
+        Meta.read_only_fields = getattr(model_admin, 'readonly_fields', [])
         
         # Create dynamic serializer class
         attrs = {'Meta': Meta}
@@ -48,7 +50,6 @@ class AdminAPIGenerator:
         serializer_class = AdminAPIGenerator.generate_serializer(model, model_admin)
         
         class DynamicAdminViewSet(viewsets.ModelViewSet):
-            serializer_class = serializer_class
             permission_classes = [AdminPermission]
             filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
             
@@ -154,6 +155,7 @@ class AdminAPIGenerator:
                 serializer = self.get_serializer(queryset, many=True)
                 return JsonResponse(serializer.data, safe=False)
         
+        DynamicAdminViewSet.serializer_class = serializer_class
         return DynamicAdminViewSet
 
     @classmethod
