@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.contenttypes.models import ContentType
 from django.contrib import admin
 from django.urls import reverse
+from django.conf import settings
 
 def get_model_metadata(model):
     """
@@ -50,6 +51,7 @@ def get_model_metadata(model):
             'help_text': str(field.help_text) if field.help_text else '',
             'default': field.default if field.default != models.NOT_PROVIDED else None,
             'editable': getattr(field, 'editable', True),
+            'is_translation': any(field.name.endswith(f"_{code}") for code, _ in getattr(settings, 'LANGUAGES', [])),
         }
 
         if hasattr(field, 'choices') and field.choices:

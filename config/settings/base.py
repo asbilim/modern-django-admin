@@ -28,6 +28,7 @@ THIRD_PARTY_APPS = [
     'django_filters',
     'corsheaders',
     'drf_spectacular',
+    'modeltranslation',
 ]
 
 LOCAL_APPS = [
@@ -82,6 +83,15 @@ LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
+
+LANGUAGES = [
+    ('en', 'English'),
+    ('de', 'German'),
+    ('fr', 'French'),
+]
+
+MODELTRANSLATION_DEFAULT_LANGUAGE = 'en'
+MODELTRANSLATION_LANGUAGES = [code for code, _ in LANGUAGES]
 
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
