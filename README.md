@@ -15,6 +15,8 @@ Created by: **asbilim**
 - **User & Group Management:** Super admins can manage users and groups via the API.
 - **Frontend Ready:** Provides configuration endpoints for easy integration with a frontend dashboard.
 - **Customizable:** Easily extend and customize serializers, viewsets, and permissions.
+- **Automatic Translations:** All text fields are available in English, German and French without manual setup.
+- **UI Component Metadata:** Each API response includes suggested components for creating, editing and displaying fields.
 
 ## Quick Start
 
@@ -64,6 +66,28 @@ Created by: **asbilim**
   - `http://localhost:8000/api/schema/` (Download OpenAPI Schema)
   - `http://localhost:8000/api/schema/swagger-ui/` (Swagger UI)
   - `http://localhost:8000/api/schema/redoc/` (Redoc)
+
+## Authentication Flow
+
+This project uses JWT for authentication, with endpoints for password reset and two-factor authentication (2FA).
+
+1.  **Login**: `POST /api/token/` with `username` and `password` to get an access and refresh token.
+2.  **Password Reset**:
+    - `POST /api/auth/password_reset/` with `email` to request a reset link.
+    - `POST /api/auth/password_reset/confirm/` with `token` and new `password`.
+3.  **Two-Factor Authentication (2FA)**:
+    - `GET /api/auth/2fa/enable/` to get a QR code and secret key.
+    - `POST /api/auth/2fa/verify/` with an `otp` to confirm and enable 2FA.
+    - `POST /api/auth/2fa/disable/` to disable 2FA for the user.
+    - If 2FA is enabled, the login flow requires an extra verification step with the OTP.
+
+## Field Metadata and UI Components
+
+Each model endpoint returns metadata describing its fields. This includes a
+suggested `ui_component` for rendering forms or detail pages. The same
+component type can be used when creating, editing or simply displaying data.
+Translation fields are automatically added for every text field so your frontend
+can present forms in English, German and French without extra setup.
 
 ## Project Structure
 
