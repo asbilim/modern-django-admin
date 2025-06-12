@@ -100,13 +100,25 @@ def get_admin_site_config():
         
         category = frontend_config.get('category', 'Other')
         
+        try:
+            # Construct the API URL for the model list view.
+            # The router registers routes with names like '<model_name>-list'.
+            list_url = reverse(f'{model_name}-list')
+            # The full path is composed of the router's prefix and the reversed URL.
+            api_url = f'/api/admin/models{list_url}'
+        except:
+            # This might fail if a model is registered with the admin
+            # but not exposed via the API generator for some reason.
+            api_url = None
+            
         models_config[f'{app_label}.{model_name}'] = {
             'app_label': app_label,
             'model_name': model_name,
             'verbose_name': str(model._meta.verbose_name),
             'verbose_name_plural': str(model._meta.verbose_name_plural),
             'category': category,
-            'frontend_config': frontend_config
+            'frontend_config': frontend_config,
+            'api_url': api_url,
         }
         
         # Group by category
