@@ -49,10 +49,27 @@ def get_model_metadata(model):
             'required': not field.null and not field.blank,
             'max_length': getattr(field, 'max_length', None),
             'help_text': str(field.help_text) if field.help_text else '',
-            'default': field.default if field.default != models.NOT_PROVIDED else None,
             'editable': getattr(field, 'editable', True),
             'is_translation': any(field.name.endswith(f"_{code}") for code, _ in getattr(settings, 'LANGUAGES', [])),
         }
+
+        # Handle default value - ensure it's JSON serializable
+        if field.default != models.NOT_PROVIDED:
+            if callable(field.default):
+                # If default is a callable, just indicate it has a default function
+                field_info['default'] = "Function default"
+            else:
+                # Make sure the default value is serializable
+                try:
+                    # Test if it can be serialized
+                    import json
+                    json.dumps(field.default)
+                    field_info['default'] = field.default
+                except (TypeError, OverflowError):
+                    # If not serializable, convert to string representation
+                    field_info['default'] = str(field.default)
+        else:
+            field_info['default'] = None
 
         if hasattr(field, 'choices') and field.choices:
             field_info['choices'] = [

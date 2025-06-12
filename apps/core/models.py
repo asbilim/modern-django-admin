@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 class Category(models.Model):
     """Category model for organizing content"""
@@ -8,8 +9,8 @@ class Category(models.Model):
     description = models.TextField(blank=True)
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True)
     is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(default=timezone.now, editable=False)
+    updated_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
         verbose_name = 'Category'
@@ -19,11 +20,17 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
+    def save(self, *args, **kwargs):
+        self.updated_at = timezone.now()
+        super().save(*args, **kwargs)
+
 class Tag(models.Model):
     """Tag model for content tagging"""
     name = models.CharField(max_length=50, unique=True)
     slug = models.SlugField(max_length=50, unique=True)
     color = models.CharField(max_length=7, default='#007bff', help_text='Hex color code')
+    created_at = models.DateTimeField(default=timezone.now, editable=False)
+    updated_at = models.DateTimeField(default=timezone.now)
     
     class Meta:
         verbose_name = 'Tag'
@@ -31,4 +38,8 @@ class Tag(models.Model):
         ordering = ['name']
     
     def __str__(self):
-        return self.name 
+        return self.name
+
+    def save(self, *args, **kwargs):
+        self.updated_at = timezone.now()
+        super().save(*args, **kwargs) 
