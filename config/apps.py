@@ -1,7 +1,6 @@
 from django.apps import AppConfig
 
 
-class AdminApiConfig(AppConfig):
+class ConfigConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'admin_api'
-    verbose_name = 'Admin API'
+    name = 'config'
