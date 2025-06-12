@@ -65,7 +65,7 @@ def get_model_metadata(model):
             try:
                 # Construct the API URL for the related model
                 related_url = reverse(f'{related_model._meta.model_name}-list')
-                api_url = f'/api/admin/models{related_url}'
+                api_url = related_url
             except:
                 api_url = None # Could not reverse the URL
 
@@ -105,7 +105,7 @@ def get_admin_site_config():
             # The router registers routes with names like '<model_name>-list'.
             list_url = reverse(f'{model_name}-list')
             # The full path is composed of the router's prefix and the reversed URL.
-            api_url = f'/api/admin/models{list_url}'
+            api_url = list_url
         except:
             # This might fail if a model is registered with the admin
             # but not exposed via the API generator for some reason.
@@ -126,7 +126,78 @@ def get_admin_site_config():
             categories[category] = []
         categories[category].append(f'{app_label}.{model_name}')
     
+    # Define comprehensive icon choices for the frontend to use.
+    frontend_options = {
+        'categories': [
+            'Access Control',
+            'Task Management',
+            'Content',
+            'Configuration',
+            'Site Settings',
+            'Other',
+        ],
+        'icons': [
+            # User & Access Control
+            'user', 'users', 'user-plus', 'user-minus', 'user-check', 'user-x',
+            'shield', 'shield-check', 'lock', 'unlock', 'key', 'fingerprint',
+            
+            # Business & Work
+            'briefcase', 'building', 'office-building', 'home', 'map-pin',
+            'phone', 'smartphone', 'tablet', 'laptop', 'monitor',
+            
+            # Tasks & Projects
+            'check-square', 'square', 'list', 'check-circle', 'circle',
+            'clipboard', 'clipboard-check', 'clipboard-list', 'target',
+            'flag', 'bookmark', 'star', 'heart', 'thumbs-up', 'thumbs-down',
+            
+            # Content & Media
+            'folder', 'folder-open', 'folder-plus', 'file', 'file-text',
+            'image', 'video', 'music', 'headphones', 'camera', 'film',
+            'book', 'book-open', 'newspaper', 'pen-tool', 'edit', 'edit-3',
+            
+            # Communication & Social
+            'mail', 'message-square', 'message-circle', 'phone-call',
+            'send', 'share', 'share-2', 'link', 'link-2', 'external-link',
+            
+            # Navigation & Organization
+            'tag', 'tags', 'hash', 'menu', 'more-horizontal', 'more-vertical',
+            'grid', 'list', 'sidebar', 'layout', 'columns', 'rows',
+            
+            # System & Settings
+            'settings', 'cog', 'tool', 'wrench', 'sliders', 'toggle-left',
+            'toggle-right', 'power', 'refresh-cw', 'download', 'upload',
+            'database', 'server', 'cloud', 'wifi', 'globe', 'compass',
+            
+            # Analytics & Reports
+            'bar-chart', 'bar-chart-2', 'pie-chart', 'trending-up', 'trending-down',
+            'activity', 'pulse', 'eye', 'search', 'filter', 'sort-asc', 'sort-desc',
+            
+            # Status & Alerts
+            'info', 'help-circle', 'alert-circle', 'alert-triangle', 'x-circle',
+            'check-circle', 'clock', 'calendar', 'bell', 'bell-off',
+            
+            # Actions & Controls
+            'plus', 'plus-circle', 'minus', 'minus-circle', 'x', 'trash',
+            'trash-2', 'archive', 'save', 'copy', 'scissors', 'rotate-cw',
+            'rotate-ccw', 'maximize', 'minimize', 'zoom-in', 'zoom-out',
+            
+            # Commerce & Finance
+            'shopping-cart', 'shopping-bag', 'credit-card', 'dollar-sign',
+            'percent', 'gift', 'award', 'package', 'truck', 'map',
+            
+            # Time & Scheduling
+            'calendar', 'clock', 'watch', 'timer', 'stopwatch', 'sunrise',
+            'sunset', 'moon', 'sun', 'zap', 'battery', 'battery-charging',
+            
+            # Additional Utility Icons
+            'anchor', 'aperture', 'box', 'droplet', 'feather', 'layers',
+            'paperclip', 'printer', 'rss', 'terminal', 'type', 'umbrella',
+            'wind', 'zap-off', 'cpu', 'hard-drive', 'radio', 'bluetooth'
+        ]
+    }
+
     return {
         'models': models_config,
-        'categories': categories
-    } 
+        'categories': categories,
+        'frontend_options': frontend_options,
+    }

@@ -39,6 +39,8 @@ LOCAL_APPS = [
     'apps.core',
     'apps.blog',
     'apps.site_config',
+    'apps.todo',
+    'apps.site_identity',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -97,13 +99,43 @@ LANGUAGES = [
 MODELTRANSLATION_DEFAULT_LANGUAGE = 'en'
 MODELTRANSLATION_LANGUAGES = [code for code, _ in LANGUAGES]
 
+# Cloudflare R2 Storage Settings
+# These settings are only active if AWS_STORAGE_BUCKET_NAME is set in the environment
+AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME', default=None)
+
+if AWS_STORAGE_BUCKET_NAME:
+    # Boto3/S3 General Settings
+    AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY')
+    AWS_S3_ENDPOINT_URL = config('AWS_S3_ENDPOINT_URL')
+    AWS_S3_REGION_NAME = config('AWS_S3_REGION_NAME', default='auto')
+
+    # django-storages settings for R2
+    AWS_S3_CUSTOM_DOMAIN = config('AWS_S3_CUSTOM_DOMAIN', default=None)
+    AWS_S3_OBJECT_PARAMETERS = {
+        'CacheControl': 'max-age=86400', # Cache for 1 day
+    }
+    
+    # Use R2 for media files
+    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+    
+    # Construct the media URL
+    if AWS_S3_CUSTOM_DOMAIN:
+        MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
+    else:
+        # Fallback if no custom domain is set
+        MEDIA_URL = f'{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/media/'
+else:
+    # Default local storage settings if R2 is not configured
+    MEDIA_URL = '/media/'
+
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 
-# Media files
-MEDIA_URL = '/media/'
+# Media files root (local)
+# This is still needed for local development and management commands
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # Default primary key field type
@@ -141,8 +173,8 @@ SPECTACULAR_SETTINGS = {
 
 # Simple JWT Settings
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=2),
     'ROTATE_REFRESH_TOKENS': False,
     'BLACKLIST_AFTER_ROTATION': True,
     'UPDATE_LAST_LOGIN': True,
