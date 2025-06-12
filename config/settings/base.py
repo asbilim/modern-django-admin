@@ -39,6 +39,8 @@ LOCAL_APPS = [
     'apps.core',
     'apps.blog',
     'apps.site_config',
+    'apps.todo',
+    'apps.site_identity',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
