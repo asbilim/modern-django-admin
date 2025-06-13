@@ -17,6 +17,7 @@ admin.site.index_title = settings.ADMIN_INDEX_TITLE
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/admin/', include('admin_api.urls')),
+    path('api/blog/', include('apps.blog.urls', namespace='blog')),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     # Password Reset

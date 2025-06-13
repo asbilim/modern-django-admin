@@ -1,14 +1,17 @@
 from django.db import models
 from django.contrib.contenttypes.models import ContentType
 from django.contrib import admin
-from django.urls import reverse
+from django.urls import reverse, NoReverseMatch
 from django.conf import settings
 
-def get_model_metadata(model):
+def get_model_metadata(model, model_admin=None):
     """
     Extract comprehensive model metadata for frontend rendering and validation.
     """
     fields = {}
+    field_metadata_config = {}
+    if model_admin and hasattr(model_admin, 'Meta') and hasattr(model_admin.Meta, 'field_metadata'):
+        field_metadata_config = model_admin.Meta.field_metadata
 
     for field in model._meta.get_fields():
         if isinstance(field, (models.ManyToOneRel, models.ManyToManyRel, models.OneToOneRel)):
@@ -16,7 +19,9 @@ def get_model_metadata(model):
             continue
 
         field_type = field.__class__.__name__
-        ui_component = 'textfield' # Default component
+        
+        # Start with a default component
+        ui_component = 'textfield'
 
         # Determine the UI component based on the field type
         if field_type == 'TextField':
@@ -40,6 +45,9 @@ def get_model_metadata(model):
         elif hasattr(field, 'json_schema'): # For JSONFields with a schema
             ui_component = 'json_editor'
 
+        # Check for overrides from the admin class
+        if field.name in field_metadata_config:
+            ui_component = field_metadata_config[field.name].get('ui_component', ui_component)
 
         field_info = {
             'name': field.name,
@@ -49,10 +57,27 @@ def get_model_metadata(model):
             'required': not field.null and not field.blank,
             'max_length': getattr(field, 'max_length', None),
             'help_text': str(field.help_text) if field.help_text else '',
-            'default': field.default if field.default != models.NOT_PROVIDED else None,
             'editable': getattr(field, 'editable', True),
             'is_translation': any(field.name.endswith(f"_{code}") for code, _ in getattr(settings, 'LANGUAGES', [])),
         }
+
+        # Handle default value - ensure it's JSON serializable
+        if field.default != models.NOT_PROVIDED:
+            if callable(field.default):
+                # If default is a callable, just indicate it has a default function
+                field_info['default'] = "Function default"
+            else:
+                # Make sure the default value is serializable
+                try:
+                    # Test if it can be serialized
+                    import json
+                    json.dumps(field.default)
+                    field_info['default'] = field.default
+                except (TypeError, OverflowError):
+                    # If not serializable, convert to string representation
+                    field_info['default'] = str(field.default)
+        else:
+            field_info['default'] = None
 
         if hasattr(field, 'choices') and field.choices:
             field_info['choices'] = [
@@ -64,9 +89,8 @@ def get_model_metadata(model):
             related_model = field.related_model
             try:
                 # Construct the API URL for the related model
-                related_url = reverse(f'{related_model._meta.model_name}-list')
-                api_url = related_url
-            except:
+                api_url = reverse(f'admin_api:{related_model._meta.model_name}-list')
+            except NoReverseMatch:
                 api_url = None # Could not reverse the URL
 
             field_info['related_model'] = {
@@ -103,10 +127,10 @@ def get_admin_site_config():
         try:
             # Construct the API URL for the model list view.
             # The router registers routes with names like '<model_name>-list'.
-            list_url = reverse(f'{model_name}-list')
+            list_url = reverse(f'admin_api:{model_name}-list')
             # The full path is composed of the router's prefix and the reversed URL.
             api_url = list_url
-        except:
+        except NoReverseMatch:
             # This might fail if a model is registered with the admin
             # but not exposed via the API generator for some reason.
             api_url = None

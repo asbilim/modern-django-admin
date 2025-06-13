@@ -11,7 +11,12 @@ Created by: **asbilim**
 ## Features
 
 - **Auto-generated API:** Automatically creates REST API endpoints for all models registered in the Django admin.
+- **Dashboard Analytics:** A new `/api/admin/dashboard-stats/` endpoint provides a comprehensive overview of site activity, including user signups, content creation statistics, and recent activities.
+- **Pre-built Blog App:** Includes a full-featured, RESTful blog API with posts, categories, tags, comments, and more.
 - **Dynamic Configuration:** Manage site settings like email and file storage directly through the API.
+- **Enhanced Site Identity:** More detailed site identity management, including author information, contact details, and social media links.
+- **Admin User Preferences:** Users can have their own admin UI preferences, such as theme and layout density.
+- **API Request Logging:** Automatically logs API requests for analytics and monitoring.
 - **Site Identity & SEO:** Manage your site's name, logo, favicon, and SEO tags from a central place.
 - **User & Group Management:** Super admins can manage users and groups via the API.
 - **Frontend Ready:** Provides configuration endpoints for easy integration with a frontend dashboard.
@@ -70,7 +75,13 @@ Created by: **asbilim**
 ## API Endpoints
 
 - **Admin API Root**: `http://localhost:8000/api/admin/`
+- **Dashboard Analytics**: `http://localhost:8000/api/admin/dashboard-stats/`
 - **API for a model**: `http://localhost:8000/api/admin/models/<model-name>/`
+- **Blog API**:
+  - Posts: `http://localhost:8000/api/blog/posts/`
+  - Categories: `http://localhost:8000/api/blog/categories/`
+  - Tags: `http://localhost:8000/api/blog/tags/`
+  - Search: `http://localhost:8000/api/blog/search/?q=<query>`
 - **Traditional Admin**: `http://localhost:8000/admin/`
 - **API Schema**:
   - `http://localhost:8000/api/schema/` (Download OpenAPI Schema)
@@ -99,10 +110,35 @@ component type can be used when creating, editing or simply displaying data.
 Translation fields are automatically added for every text field so your frontend
 can present forms in English, German and French without extra setup.
 
+To provide more specific control over the UI components, you can define a `field_metadata` dictionary within your `ModelAdmin`'s `Meta` class. This allows you to override the default component for any field. For example, to specify that a `content` field should use a Markdown editor:
+
+```python
+# in your_app/admin.py
+
+@admin.register(Post)
+class PostAdmin(admin.ModelAdmin):
+    # ... other admin settings
+
+    class Meta:
+        frontend_config = {
+            'icon': 'file-text',
+            'category': 'Blog',
+            'include_in_dashboard': True,
+        }
+        field_metadata = {
+            'content': {'ui_component': 'markdown_editor'},
+            'excerpt': {'ui_component': 'textarea'},
+        }
+```
+
+This gives you fine-grained control over the frontend rendering hints provided by the API.
+
 The main admin endpoint (`/api/admin/`) also provides a `frontend_options` object
 that contains lists of predefined choices, such as available model
 categories and a comprehensive icon set. This allows the frontend to build UIs
 with consistent dropdowns and selection tools.
+
+**For a detailed guide on how this system works, please see the [API Metadata Guide](./API_METADATA_GUIDE.md).**
 
 ## File Storage
 
@@ -190,7 +226,7 @@ La cuisine a un "directeur" très intelligent. Vous n'avez pas besoin de deviner
     Il suffit de demander la recette ! Chaque plat a une adresse de "configuration" (`/config/`).
     Cette recette vous dit tout ce dont vous avez besoin pour chaque ingrédient (chaque "champ") :
     - **Le type d'ingrédient** : Est-ce un texte court, une longue histoire, une date, une image ?
-    - **La boîte à utiliser** : La recette vous suggère même le type de "boîte" ou de "composant" à utiliser dans votre interface. C'est la clé `ui_component`. Elle vous dira d'utiliser un petit champ de texte, une grande zone de texte, un calendrier, un bouton pour télécharger une image, etc. C'est comme un kit de peinture par numéros pour construire vos formulaires !
+    - **La boîte à utiliser** : La recette vous suggère même le type de "boîte" ou de "composant" à utiliser dans votre interface. C'est la clé `ui_component`. Elle vous dira d'utiliser un petit champ de texte, une grande zone de texte, un éditeur de texte riche (Markdown), un calendrier, un bouton pour télécharger une image, etc. C'est comme un kit de peinture par numéros pour construire vos formulaires !
     - **Les traductions** : Pour chaque champ de texte, la cuisine a déjà préparé des versions en français, anglais et allemand. Votre interface peut donc facilement afficher des onglets pour chaque langue.
 
 **Comment passer une commande ?**

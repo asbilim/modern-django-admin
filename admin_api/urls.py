@@ -4,6 +4,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .generators import AdminAPIGenerator
 from .utils import get_admin_site_config
+from .views import DashboardStatsView
 
 # Auto-generate viewsets for all registered admin models
 admin_viewsets = AdminAPIGenerator.register_all()
@@ -36,8 +37,11 @@ def admin_user_info(request):
         'permissions': list(request.user.get_all_permissions())
     })
 
+app_name = 'admin_api'
+
 urlpatterns = [
     path('', admin_site_config, name='admin-site-config'),
     path('user/', admin_user_info, name='admin-user-info'),
     path('models/', include(router.urls)),
+    path('dashboard-stats/', DashboardStatsView.as_view(), name='dashboard-stats'),
 ] 
