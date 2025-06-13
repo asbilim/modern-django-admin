@@ -72,7 +72,7 @@ class AdminAPIGenerator:
                     'model_name': model._meta.model_name,
                     'verbose_name': str(model._meta.verbose_name),
                     'verbose_name_plural': str(model._meta.verbose_name_plural),
-                    'fields': get_model_metadata(model),
+                    'fields': get_model_metadata(model, model_admin),
                     'admin_config': {
                         'list_display': getattr(model_admin, 'list_display', []),
                         'list_filter': getattr(model_admin, 'list_filter', []),

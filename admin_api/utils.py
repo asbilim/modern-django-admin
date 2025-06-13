@@ -4,11 +4,14 @@ from django.contrib import admin
 from django.urls import reverse
 from django.conf import settings
 
-def get_model_metadata(model):
+def get_model_metadata(model, model_admin=None):
     """
     Extract comprehensive model metadata for frontend rendering and validation.
     """
     fields = {}
+    field_metadata_config = {}
+    if model_admin and hasattr(model_admin, 'Meta') and hasattr(model_admin.Meta, 'field_metadata'):
+        field_metadata_config = model_admin.Meta.field_metadata
 
     for field in model._meta.get_fields():
         if isinstance(field, (models.ManyToOneRel, models.ManyToManyRel, models.OneToOneRel)):
@@ -16,7 +19,9 @@ def get_model_metadata(model):
             continue
 
         field_type = field.__class__.__name__
-        ui_component = 'textfield' # Default component
+        
+        # Start with a default component
+        ui_component = 'textfield'
 
         # Determine the UI component based on the field type
         if field_type == 'TextField':
@@ -40,6 +45,9 @@ def get_model_metadata(model):
         elif hasattr(field, 'json_schema'): # For JSONFields with a schema
             ui_component = 'json_editor'
 
+        # Check for overrides from the admin class
+        if field.name in field_metadata_config:
+            ui_component = field_metadata_config[field.name].get('ui_component', ui_component)
 
         field_info = {
             'name': field.name,

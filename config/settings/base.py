@@ -53,6 +53,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django_otp.middleware.OTPMiddleware',
+    'apps.core.middleware.RequestLoggingMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -207,6 +208,21 @@ CORS_ALLOWED_ORIGINS = config(
     cast=Csv()
 )
 CORS_ALLOW_CREDENTIALS = True
+
+# BLOG API SETTINGS
+BLOG_API_SETTINGS = {
+    'PAGINATION_SIZE': 20,
+    'MAX_PAGINATION_SIZE': 100,
+    'ALLOW_ANONYMOUS_COMMENTS': True,
+    'MODERATE_COMMENTS': True,
+    'AUTO_APPROVE_REGISTERED_USER_COMMENTS': True,
+    'READING_WPM': 200,  # Words per minute for reading time
+    'EXCERPT_LENGTH': 150,
+    'IMAGE_UPLOAD_MAX_SIZE': 5 * 1024 * 1024,  # 5MB
+    'ENABLE_SEARCH': True,
+    'CACHE_TIMEOUT': 300,  # 5 minutes
+    'RELATED_POSTS_COUNT': 5,
+}
 
 # Admin site configuration
 ADMIN_SITE_HEADER = 'Django Admin API'

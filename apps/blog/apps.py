@@ -6,4 +6,9 @@ class BlogConfig(AppConfig):
     verbose_name = 'Blog'
     
     def ready(self):
-        import apps.blog.translation  # Import translation module 
+        # This is where you connect your signals
+        import apps.blog.signals
+        # This is also where you can import your translation options
+        import apps.blog.translation
+
+        # Import translation module 

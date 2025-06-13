@@ -11,7 +11,8 @@ class ProjectAdmin(admin.ModelAdmin):
         frontend_config = {
             'icon': 'briefcase',
             'category': 'Task Management',
-            'description': 'Group tasks together into projects.'
+            'description': 'Manage high-level projects.',
+            'include_in_dashboard': True,
         }
 
 @admin.register(Task)
@@ -25,5 +26,9 @@ class TaskAdmin(admin.ModelAdmin):
         frontend_config = {
             'icon': 'check-square',
             'category': 'Task Management',
-            'description': 'Manage individual tasks.'
+            'description': 'Manage individual tasks within projects.',
+            'include_in_dashboard': True,
+        }
+        field_metadata = {
+            'description': {'ui_component': 'textarea'},
         } 
