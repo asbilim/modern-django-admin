@@ -4,6 +4,7 @@ from rest_framework import serializers, viewsets, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
+from django.urls import reverse, NoReverseMatch
 from .permissions import AdminPermission
 from .utils import get_model_metadata
 
@@ -68,10 +69,18 @@ class AdminAPIGenerator:
             @action(detail=False, methods=['get'])
             def config(self, request):
                 """Return admin configuration for frontend"""
+                try:
+                    # Build URL paths without the domain
+                    model_url = reverse(f'admin_api:{model._meta.model_name}-list')
+                except NoReverseMatch:
+                    model_url = None
+
                 config = {
                     'model_name': model._meta.model_name,
                     'verbose_name': str(model._meta.verbose_name),
                     'verbose_name_plural': str(model._meta.verbose_name_plural),
+                    'api_url': model_url,
+                    'model_url': model_url,
                     'fields': get_model_metadata(model, model_admin),
                     'admin_config': {
                         'list_display': getattr(model_admin, 'list_display', []),

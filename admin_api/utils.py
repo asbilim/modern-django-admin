@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.contenttypes.models import ContentType
 from django.contrib import admin
-from django.urls import reverse
+from django.urls import reverse, NoReverseMatch
 from django.conf import settings
 
 def get_model_metadata(model, model_admin=None):
@@ -89,9 +89,8 @@ def get_model_metadata(model, model_admin=None):
             related_model = field.related_model
             try:
                 # Construct the API URL for the related model
-                related_url = reverse(f'{related_model._meta.model_name}-list')
-                api_url = related_url
-            except:
+                api_url = reverse(f'admin_api:{related_model._meta.model_name}-list')
+            except NoReverseMatch:
                 api_url = None # Could not reverse the URL
 
             field_info['related_model'] = {
@@ -128,10 +127,10 @@ def get_admin_site_config():
         try:
             # Construct the API URL for the model list view.
             # The router registers routes with names like '<model_name>-list'.
-            list_url = reverse(f'{model_name}-list')
+            list_url = reverse(f'admin_api:{model_name}-list')
             # The full path is composed of the router's prefix and the reversed URL.
             api_url = list_url
-        except:
+        except NoReverseMatch:
             # This might fail if a model is registered with the admin
             # but not exposed via the API generator for some reason.
             api_url = None
