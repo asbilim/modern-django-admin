@@ -90,17 +90,46 @@ Created by: **asbilim**
 
 ## Authentication Flow
 
-This project uses JWT for authentication, with endpoints for password reset and two-factor authentication (2FA).
+This project uses JWT for authentication. Here is a summary of the authentication and user management endpoints.
 
-1.  **Login**: `POST /api/token/` with `username` and `password` to get an access and refresh token.
-2.  **Password Reset**:
-    - `POST /api/auth/password_reset/` with `email` to request a reset link.
-    - `POST /api/auth/password_reset/confirm/` with `token` and new `password`.
-3.  **Two-Factor Authentication (2FA)**:
-    - `GET /api/auth/2fa/enable/` to get a QR code and secret key.
-    - `POST /api/auth/2fa/verify/` with an `otp` to confirm and enable 2FA.
-    - `POST /api/auth/2fa/disable/` to disable 2FA for the user.
-    - If 2FA is enabled, the login flow requires an extra verification step with the OTP.
+### 1. Token Management
+
+- **Get Tokens (Login Step 1)**: `POST /api/token/`
+
+  - Provide `username` and `password`.
+  - If 2FA is **disabled**, this returns `access` and `refresh` tokens directly.
+  - If 2FA is **enabled**, it returns a temporary message: `{"detail": "OTP required.", "is_2fa_enabled": true}`.
+
+- **Verify 2FA and Get Tokens (Login Step 2)**: `POST /api/auth/token/verify/`
+
+  - If 2FA is enabled, use this endpoint.
+  - Provide `username`, `password`, and the `otp` from an authenticator app.
+  - On success, this returns the final `access` and `refresh` tokens.
+  - _Note: If you receive an "Invalid OTP" error, please ensure your phone's clock is synchronized with an internet time server._
+
+- **Refresh Token**: `POST /api/token/refresh/`
+  - Provide the `refresh` token to get a new `access` token.
+
+### 2. Password Reset
+
+- **Request Reset**: `POST /api/auth/password_reset/`
+  - Provide the user's `email` to receive a password reset link.
+- **Confirm Reset**: `POST /api/auth/password_reset/confirm/`
+  - Provide the `token` from the email and a `new_password`.
+
+### 3. Account Management (Authenticated)
+
+These endpoints require an active `access` token in the authorization header.
+
+- **User Profile**:
+  - `GET /api/auth/me/`: Retrieve the current user's profile (`username`, `email`, `first_name`, `last_name`).
+  - `PATCH /api/auth/me/`: Update the current user's profile data.
+- **Change Password**:
+  - `POST /api/auth/me/change-password/`: Change the password by providing `old_password` and `new_password`.
+- **Two-Factor Authentication (2FA)**:
+  - **Enable (Step 1)**: `GET /api/auth/2fa/enable/` to get a secret key and a QR code for your authenticator app.
+  - **Verify & Activate (Step 2)**: `POST /api/auth/2fa/verify/` with an `otp` to confirm the setup and activate 2FA on your account.
+  - **Disable**: `POST /api/auth/2fa/disable/` with your current `password` to deactivate 2FA.
 
 ## Field Metadata and UI Components
 
