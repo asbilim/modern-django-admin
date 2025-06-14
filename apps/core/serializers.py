@@ -13,10 +13,15 @@ logger = logging.getLogger(__name__)
 User = get_user_model()
 
 class UserProfileSerializer(serializers.ModelSerializer):
+    is_2fa_enabled = serializers.SerializerMethodField()
+
     class Meta:
         model = User
-        fields = ('username', 'email', 'first_name', 'last_name')
-        read_only_fields = ('email',) # Don't allow email changes through this endpoint for now
+        fields = ('username', 'email', 'first_name', 'last_name', 'is_2fa_enabled')
+        read_only_fields = ('email', 'is_2fa_enabled')
+
+    def get_is_2fa_enabled(self, user):
+        return TOTPDevice.objects.filter(user=user, confirmed=True).exists()
 
 class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(required=True, write_only=True)
