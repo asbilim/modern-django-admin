@@ -6,12 +6,51 @@ from django.urls import reverse
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from .serializers import PasswordResetRequestSerializer, PasswordResetConfirmSerializer, OTPVerifySerializer
+from .serializers import (
+    PasswordResetRequestSerializer,
+    PasswordResetConfirmSerializer,
+    TwoFactorEnableSerializer,
+    TwoFactorVerifySerializer,
+    TwoFactorDisableSerializer,
+    TwoFactorTokenVerifySerializer,
+    UserProfileSerializer,
+    ChangePasswordSerializer,
+)
 import time
 from django_otp.plugins.otp_totp.models import TOTPDevice
 import qrcode
 import qrcode.image.svg
 from io import BytesIO
+from django.contrib.auth import get_user_model
+from django.utils.encoding import force_str
+from django.utils.http import urlsafe_base64_decode
+from django.contrib.auth.tokens import default_token_generator
+from rest_framework_simplejwt.tokens import RefreshToken
+
+User = get_user_model()
+
+class UserProfileView(generics.RetrieveUpdateAPIView):
+    """
+    Manage the current user's profile data.
+    """
+    serializer_class = UserProfileSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
+
+class ChangePasswordView(generics.GenericAPIView):
+    """
+    Change password for the current user.
+    """
+    serializer_class = ChangePasswordSerializer
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({"detail": "Password has been updated."}, status=status.HTTP_200_OK)
 
 class PasswordResetRequestView(generics.GenericAPIView):
     serializer_class = PasswordResetRequestSerializer
@@ -105,7 +144,7 @@ class TwoFactorEnableView(generics.GenericAPIView):
 
 class TwoFactorVerifyView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = OTPVerifySerializer
+    serializer_class = TwoFactorVerifySerializer
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -134,4 +173,24 @@ class TwoFactorDisableView(generics.GenericAPIView):
         user = request.user
         devices = TOTPDevice.objects.filter(user=user)
         devices.delete()
-        return Response({"message": "2FA has been disabled."}, status=status.HTTP_200_OK) 
+        return Response({"message": "2FA has been disabled."}, status=status.HTTP_200_OK)
+
+
+class TwoFactorTokenVerifyView(generics.GenericAPIView):
+    """
+    Takes username, password, and OTP to verify and return tokens.
+    """
+    permission_classes = [AllowAny]
+    serializer_class = TwoFactorTokenVerifySerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        
+        refresh = RefreshToken.for_user(user)
+        
+        return Response({
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+        }) 

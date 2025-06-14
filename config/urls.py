@@ -3,11 +3,9 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-)
+from rest_framework_simplejwt.views import TokenRefreshView
 from apps.core import views as core_views
+from apps.core.auth_views import TwoFactorTokenObtainPairView
 
 # Admin site customization
 admin.site.site_header = settings.ADMIN_SITE_HEADER
@@ -18,8 +16,13 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/admin/', include('admin_api.urls')),
     path('api/blog/', include('apps.blog.urls', namespace='blog')),
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/', TwoFactorTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    # User Profile Management
+    path('api/auth/me/', core_views.UserProfileView.as_view(), name='user-profile'),
+    path('api/auth/me/change-password/', core_views.ChangePasswordView.as_view(), name='change-password'),
+    # 2FA Token Verification
+    path('api/auth/token/verify/', core_views.TwoFactorTokenVerifyView.as_view(), name='token_verify_2fa'),
     # Password Reset
     path('api/auth/password_reset/', core_views.PasswordResetRequestView.as_view(), name='password_reset_request'),
     path('api/auth/password_reset/confirm/', core_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
