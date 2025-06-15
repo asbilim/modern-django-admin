@@ -49,6 +49,7 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -110,9 +111,12 @@ if AWS_STORAGE_BUCKET_NAME:
     AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY')
     AWS_S3_ENDPOINT_URL = config('AWS_S3_ENDPOINT_URL')
     AWS_S3_REGION_NAME = config('AWS_S3_REGION_NAME', default='auto')
+    AWS_S3_FILE_OVERWRITE = config('AWS_S3_FILE_OVERWRITE', default=False, cast=bool) # Good practice to avoid overwrites
+
+    # Use the public URL from Cloudflare R2 as the custom domain
+    AWS_S3_CUSTOM_DOMAIN = config('CLOUDFLARE_R2_PUBLIC_DOMAIN', default=None)
 
     # django-storages settings for R2
-    AWS_S3_CUSTOM_DOMAIN = config('AWS_S3_CUSTOM_DOMAIN', default=None)
     AWS_S3_OBJECT_PARAMETERS = {
         'CacheControl': 'max-age=86400', # Cache for 1 day
     }
@@ -120,23 +124,28 @@ if AWS_STORAGE_BUCKET_NAME:
     # Use R2 for media files
     DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
     
-    # Construct the media URL
+    # Let django-storages construct the media URL from AWS_S3_CUSTOM_DOMAIN
+    # This avoids malformed URLs.
     if AWS_S3_CUSTOM_DOMAIN:
-        MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
+        MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/'
     else:
-        # Fallback if no custom domain is set
-        MEDIA_URL = f'{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/media/'
+        # Fallback for local development or if R2 is not fully configured
+        MEDIA_URL = '/media/'
 else:
     # Default local storage settings if R2 is not configured
-    MEDIA_URL = '/media/'
+    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 
-# Media files root (local)
-# This is still needed for local development and management commands
+# Media files
+# MEDIA_URL is the base URL for user-uploaded content.
+# When using local storage, this is a relative path.
+# When using django-storages with a custom domain, the storage backend generates a full URL,
+# and this setting is less critical for file resolution, but is kept for consistency.
+MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # Default primary key field type

@@ -3,6 +3,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib import admin
 from django.urls import reverse, NoReverseMatch
 from django.conf import settings
+from modeltranslation.translator import translator, NotRegistered
 
 def get_model_metadata(model, model_admin=None):
     """
@@ -13,9 +14,21 @@ def get_model_metadata(model, model_admin=None):
     if model_admin and hasattr(model_admin, 'Meta') and hasattr(model_admin.Meta, 'field_metadata'):
         field_metadata_config = model_admin.Meta.field_metadata
 
+    try:
+        trans_opts = translator.get_options_for_model(model)
+        translated_field_names = trans_opts.fields
+    except NotRegistered:
+        trans_opts = None
+        translated_field_names = []
+
     for field in model._meta.get_fields():
         if isinstance(field, (models.ManyToOneRel, models.ManyToManyRel, models.OneToOneRel)):
             # These are reverse relations, we can skip them for direct model fields
+            continue
+
+        # If this is an original field that has translations, skip it.
+        # We'll process its language-specific variants instead.
+        if field.name in translated_field_names:
             continue
 
         field_type = field.__class__.__name__
@@ -45,9 +58,22 @@ def get_model_metadata(model, model_admin=None):
         elif hasattr(field, 'json_schema'): # For JSONFields with a schema
             ui_component = 'json_editor'
 
-        # Check for overrides from the admin class
-        if field.name in field_metadata_config:
-            ui_component = field_metadata_config[field.name].get('ui_component', ui_component)
+        is_translated_field = False
+        base_field_name = field.name
+
+        if trans_opts:
+            for lang_code, _ in getattr(settings, 'LANGUAGES', []):
+                suffix = f'_{lang_code}'
+                if field.name.endswith(suffix):
+                    possible_base_name = field.name[:-len(suffix)]
+                    if possible_base_name in translated_field_names:
+                        is_translated_field = True
+                        base_field_name = possible_base_name
+                        break
+        
+        # Check for overrides from the admin class using the base field name
+        if base_field_name in field_metadata_config:
+            ui_component = field_metadata_config[base_field_name].get('ui_component', ui_component)
 
         field_info = {
             'name': field.name,
@@ -58,7 +84,7 @@ def get_model_metadata(model, model_admin=None):
             'max_length': getattr(field, 'max_length', None),
             'help_text': str(field.help_text) if field.help_text else '',
             'editable': getattr(field, 'editable', True),
-            'is_translation': any(field.name.endswith(f"_{code}") for code, _ in getattr(settings, 'LANGUAGES', [])),
+            'is_translation': is_translated_field,
         }
 
         # Handle default value - ensure it's JSON serializable
@@ -152,6 +178,7 @@ def get_admin_site_config():
     
     # Define comprehensive icon choices for the frontend to use.
     frontend_options = {
+        'languages': settings.LANGUAGES,
         'categories': [
             'Access Control',
             'Task Management',

@@ -110,6 +110,48 @@ Once you have the model's config, you can perform standard CRUD.
 - **Update (PUT/PATCH)**: `PUT /api/admin/models/<model-name>/<uuid>/`
 - **Delete (DELETE)**: `DELETE /api/admin/models/<model-name>/<uuid>/`
 
+## 6. Internationalization (i18n) for the Admin UI
+
+The admin API is designed to make managing translated content straightforward. Here's how it works:
+
+**1. Discovering Supported Languages**
+
+Your first step should be to find out which languages are supported by the application. This information is available from the main admin configuration endpoint.
+
+- **Endpoint**: `GET /api/admin/`
+- **Location**: The response contains a `frontend_options.languages` array.
+
+**Example `frontend_options.languages`:**
+
+```json
+"languages": [
+  ["en", "English"],
+  ["de", "German"],
+  ["fr", "French"]
+]
+```
+
+Your frontend should fetch this list once and store it. This allows you to dynamically build language tabs or field selectors without hardcoding the languages.
+
+**2. Identifying Translated Fields**
+
+When you fetch the configuration for a specific model (e.g., `GET /api/admin/models/post/config/`), the API automatically prepares the fields for translation.
+
+- Any field marked for translation (e.g., `title`) will be replaced by its language-specific counterparts (e.g., `title_en`, `title_de`, `title_fr`).
+- The original field name (`title`) is removed to avoid confusion.
+- Each of these language-specific fields will be marked with `"is_translation": true`.
+
+**3. Frontend Implementation**
+
+When building a form to create or edit an item:
+
+1.  **Check for translated fields**: Iterate through the `fields` from the model's `/config/` endpoint.
+2.  **Group translated fields**: Group all fields that have `"is_translation": true` by their base name (e.g., group `title_en`, `title_de`, `title_fr` together).
+3.  **Render a tabbed interface**: Use the `languages` array from `frontend_options` to create a tab for each language (e.g., "English", "German", "French").
+4.  **Place fields in tabs**: In each language tab, render the corresponding input fields. For the "German" tab, you would render the input for `title_de`, `content_de`, etc.
+
+This approach ensures that your admin interface will automatically adapt if more languages are added to the backend in the future.
+
 ## 4. Special UI Components
 
 ### Markdown Editor
