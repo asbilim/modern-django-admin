@@ -68,18 +68,22 @@ class PostDetailSerializer(PostListSerializer):
     def get_previous_post(self, obj):
         request = self.context.get('request')
         try:
-            previous = obj.get_previous_by_published_at(status='published')
-            return PostListSerializer(previous, context={'request': request}).data
+            previous = Post.published.filter(published_at__lt=obj.published_at).order_by('-published_at').first()
+            if previous:
+                return PostListSerializer(previous, context={'request': request}).data
         except Post.DoesNotExist:
             return None
+        return None
 
     def get_next_post(self, obj):
         request = self.context.get('request')
         try:
-            next = obj.get_next_by_published_at(status='published')
-            return PostListSerializer(next, context={'request': request}).data
+            next_post = Post.published.filter(published_at__gt=obj.published_at).order_by('published_at').first()
+            if next_post:
+                return PostListSerializer(next_post, context={'request': request}).data
         except Post.DoesNotExist:
             return None
+        return None
     
     def get_related_posts(self, obj, count=5):
         request = self.context.get('request')

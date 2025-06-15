@@ -1,12 +1,13 @@
 from django.contrib import admin
 from django.db import models
-from rest_framework import serializers, viewsets, filters
+from rest_framework import serializers, viewsets, filters, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from django.urls import reverse, NoReverseMatch
 from .permissions import AdminPermission
 from .utils import get_model_metadata
+from django.contrib.auth import get_user_model
 
 class AdminAPIGenerator:
     """Automatically generate API endpoints for registered admin models"""
@@ -14,6 +15,62 @@ class AdminAPIGenerator:
     @staticmethod
     def generate_serializer(model, model_admin):
         """Generate dynamic serializer based on admin configuration"""
+        
+        # Special handling for the User model to correctly handle passwords
+        if model == get_user_model():
+            
+            def create(self, validated_data):
+                # Use create_user to handle password hashing
+                groups = validated_data.pop('groups', [])
+                user_permissions = validated_data.pop('user_permissions', [])
+                
+                user = get_user_model().objects.create_user(**validated_data)
+                
+                if groups:
+                    user.groups.set(groups)
+                if user_permissions:
+                    user.user_permissions.set(user_permissions)
+                return user
+
+            def update(self, instance, validated_data):
+                # Handle password update separately
+                password = validated_data.pop('password', None)
+                
+                # Handle M2M fields
+                groups = validated_data.pop('groups', None)
+                user_permissions = validated_data.pop('user_permissions', None)
+
+                if password:
+                    instance.set_password(password)
+                
+                if groups is not None:
+                    instance.groups.set(groups)
+                
+                if user_permissions is not None:
+                    instance.user_permissions.set(user_permissions)
+
+                # Update other fields
+                for attr, value in validated_data.items():
+                    setattr(instance, attr, value)
+                instance.save()
+
+                return instance
+
+            class Meta:
+                pass
+            
+            Meta.model = model
+            Meta.fields = [field.name for field in model._meta.fields] + ['groups', 'user_permissions']
+            Meta.extra_kwargs = {
+                'password': {'write_only': True, 'style': {'input_type': 'password'}}
+            }
+            
+            attrs = {
+                'Meta': Meta,
+                'create': create,
+                'update': update,
+            }
+            return type('UserAdminSerializer', (serializers.ModelSerializer,), attrs)
         
         class Meta:
             pass
@@ -65,6 +122,64 @@ class AdminAPIGenerator:
                 if hasattr(model_admin, 'get_queryset'):
                     return model_admin.get_queryset(self.request)
                 return model.objects.all()
+            
+            @action(detail=False, methods=['post'], url_path='import')
+            def bulk_import(self, request):
+                """
+                Bulk import objects from a JSON or CSV file.
+                The file should be sent as multipart/form-data with the key 'file'.
+                The file format is determined by the file extension (.json or .csv).
+                An optional 'format' field can be used as a fallback.
+                """
+                from rest_framework.parsers import MultiPartParser, FormParser
+                import json
+                import csv
+                import io
+
+                self.parser_classes = [MultiPartParser, FormParser]
+                
+                file_obj = request.FILES.get('file')
+                if not file_obj:
+                    return Response({'error': 'File not provided.'}, status=400)
+
+                # Determine file format: prioritize file extension, then 'format' param, then default to json
+                filename = file_obj.name.lower()
+                if filename.endswith('.json'):
+                    file_format = 'json'
+                elif filename.endswith('.csv'):
+                    file_format = 'csv'
+                else:
+                    file_format = request.data.get('format', 'json').lower()
+
+                try:
+                    # Read the entire file content into a string for parsing
+                    file_content = file_obj.read().decode('utf-8')
+                    
+                    if file_format == 'json':
+                        data = json.loads(file_content)
+                    elif file_format == 'csv':
+                        csv_reader = csv.DictReader(io.StringIO(file_content))
+                        data = list(csv_reader)
+                    else:
+                        return Response({'error': f"Unsupported format: {file_format}"}, status=400)
+                except Exception as e:
+                    return Response({'error': f"Error parsing file: {str(e)}"}, status=400)
+
+                if not isinstance(data, list):
+                    return Response({'error': 'File content should be a list of objects.'}, status=400)
+
+                serializer = self.get_serializer(data=data, many=True)
+                try:
+                    serializer.is_valid(raise_exception=True)
+                    self.perform_create(serializer)
+                    return Response(
+                        {'status': 'success', 'created_count': len(serializer.data)},
+                        status=status.HTTP_201_CREATED
+                    )
+                except serializers.ValidationError as e:
+                    return Response({'error': 'Validation Error', 'details': e.detail}, status=400)
+                except Exception as e:
+                    return Response({'error': f"An unexpected error occurred: {str(e)}"}, status=400)
             
             @action(detail=False, methods=['get'])
             def config(self, request):
