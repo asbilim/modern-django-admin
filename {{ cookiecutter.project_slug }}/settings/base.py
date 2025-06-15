@@ -7,7 +7,7 @@ from datetime import timedelta
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY', default='your-secret-key-change-this')
+SECRET_KEY = config('SECRET_KEY', default='{{ cookiecutter.secret_key }}')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
@@ -35,11 +35,12 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = [
+    '{{ cookiecutter.project_slug }}',
     'admin_api',
     'apps.core',
-    'apps.blog',
+{% if cookiecutter.use_blog_app == "yes" %}'apps.blog',{% endif %}
     'apps.site_config',
-    'apps.todo',
+{% if cookiecutter.use_todo_app == "yes" %}'apps.todo',{% endif %}
     'apps.site_identity',
 ]
 
@@ -59,7 +60,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'config.urls'
+ROOT_URLCONF = '{{ cookiecutter.project_slug }}.urls'
 
 TEMPLATES = [
     {
@@ -77,7 +78,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'config.wsgi.application'
+WSGI_APPLICATION = '{{ cookiecutter.project_slug }}.wsgi.application'
 
 # Database
 DATABASES = {
@@ -174,8 +175,8 @@ REST_FRAMEWORK = {
 
 # DRF Spectacular Settings
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'Django Admin API',
-    'DESCRIPTION': 'A modern Django admin interface with auto-generated REST API for any Django project.',
+    'TITLE': '{{ cookiecutter.project_name }} API',
+    'DESCRIPTION': '{{ cookiecutter.project_description }}',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
     # OTHER SETTINGS
@@ -234,6 +235,6 @@ BLOG_API_SETTINGS = {
 }
 
 # Admin site configuration
-ADMIN_SITE_HEADER = 'Django Admin API'
-ADMIN_SITE_TITLE = 'Admin API'
-ADMIN_INDEX_TITLE = 'Welcome to Admin API' 
+ADMIN_SITE_HEADER = '{{ cookiecutter.project_name }}'
+ADMIN_SITE_TITLE = '{{ cookiecutter.project_name }} Admin'
+ADMIN_INDEX_TITLE = 'Welcome to {{ cookiecutter.project_name }} Admin' 
