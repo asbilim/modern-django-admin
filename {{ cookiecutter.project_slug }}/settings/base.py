@@ -41,6 +41,7 @@ LOCAL_APPS = [
 {% if cookiecutter.use_blog_app == "yes" %}'apps.blog',{% endif %}
     'apps.site_config',
 {% if cookiecutter.use_todo_app == "yes" %}'apps.todo',{% endif %}
+{% if cookiecutter.use_shop_app == "yes" %}'apps.shop',{% endif %}
     'apps.site_identity',
 ]
 

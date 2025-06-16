@@ -11,6 +11,9 @@ def main():
 
     if '{{ cookiecutter.use_todo_app }}' == 'no':
         remove_dir('apps/todo')
+        
+    if '{{ cookiecutter.use_shop_app }}' == 'no':
+        remove_dir('apps/shop')
 
 if __name__ == '__main__':
     main() 

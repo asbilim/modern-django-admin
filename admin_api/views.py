@@ -11,6 +11,7 @@ from django.contrib import admin
 
 {% if cookiecutter.use_blog_app == "yes" %}from apps.blog.models import Post, Comment{% endif %}
 {% if cookiecutter.use_todo_app == "yes" %}from apps.todo.models import Task, Project{% endif %}
+{% if cookiecutter.use_shop_app == "yes" %}from apps.shop.models import Order{% endif %}
 from apps.core.models import Category, Tag
 
 class DashboardStatsView(APIView):
@@ -66,6 +67,18 @@ class DashboardStatsView(APIView):
             "value": f"{total_projects_count}",
             "change": f"+{new_projects_count}",
             "icon": "briefcase",
+            "description": "Since last 30 days"
+        })
+        {% endif %}
+
+        {% if cookiecutter.use_shop_app == "yes" %}
+        new_orders_count = Order.objects.filter(created_at__gte=thirty_days_ago).count()
+        total_orders_count = Order.objects.count()
+        stats.append({
+            "title": "New Orders",
+            "value": f"{new_orders_count}",
+            "change": f"out of {total_orders_count} total",
+            "icon": "shopping-cart",
             "description": "Since last 30 days"
         })
         {% endif %}

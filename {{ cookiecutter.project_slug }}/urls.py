@@ -16,6 +16,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/admin/', include('admin_api.urls')),
     path('api/blog/', include('apps.blog.urls', namespace='blog')),
+    {% if cookiecutter.use_shop_app == "yes" %}path('api/shop/', include('apps.shop.urls', namespace='shop')),{% endif %}
     path('api/token/', TwoFactorTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     # User Profile Management
