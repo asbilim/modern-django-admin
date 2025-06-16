@@ -63,7 +63,7 @@ def get_model_metadata(model, model_admin=None):
 
         if trans_opts:
             for lang_code, _ in getattr(settings, 'LANGUAGES', []):
-                suffix = f'_{lang_code}'
+                {% raw %}suffix = f'_{lang_code}'{% endraw %}
                 if field.name.endswith(suffix):
                     possible_base_name = field.name[:-len(suffix)]
                     if possible_base_name in translated_field_names:
@@ -115,7 +115,7 @@ def get_model_metadata(model, model_admin=None):
             related_model = field.related_model
             try:
                 # Construct the API URL for the related model
-                api_url = reverse(f'admin_api:{related_model._meta.model_name}-list')
+                {% raw %}api_url = reverse(f'admin_api:{related_model._meta.model_name}-list'){% endraw %}
             except NoReverseMatch:
                 api_url = None # Could not reverse the URL
 
@@ -153,7 +153,7 @@ def get_admin_site_config():
         try:
             # Construct the API URL for the model list view.
             # The router registers routes with names like '<model_name>-list'.
-            list_url = reverse(f'admin_api:{model_name}-list')
+            {% raw %}list_url = reverse(f'admin_api:{model_name}-list'){% endraw %}
             # The full path is composed of the router's prefix and the reversed URL.
             api_url = list_url
         except NoReverseMatch:
@@ -161,7 +161,7 @@ def get_admin_site_config():
             # but not exposed via the API generator for some reason.
             api_url = None
             
-        models_config[f'{app_label}.{model_name}'] = {
+        {% raw %}models_config[f'{app_label}.{model_name}'] = {
             'app_label': app_label,
             'model_name': model_name,
             'verbose_name': str(model._meta.verbose_name),
@@ -169,12 +169,12 @@ def get_admin_site_config():
             'category': category,
             'frontend_config': frontend_config,
             'api_url': api_url,
-        }
+        }{% endraw %}
         
         # Group by category
         if category not in categories:
             categories[category] = []
-        categories[category].append(f'{app_label}.{model_name}')
+        {% raw %}categories[category].append(f'{app_label}.{model_name}'){% endraw %}
     
     # Define comprehensive icon choices for the frontend to use.
     frontend_options = {

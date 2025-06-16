@@ -26,100 +26,57 @@ Created by: **{{ cookiecutter.author_name }}**
 
 ## Quick Start
 
-1. **Setup Environment**
+Your project has been successfully generated! To get it up and running, follow these steps from your terminal.
 
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # Linux/Mac
-   # or
-   venv\Scripts\activate  # Windows
-   ```
+1.  **Navigate to Your Project Directory**
 
-2. **Install Dependencies**
+    ```bash
+    cd {{ cookiecutter.project_slug }}
+    ```
 
-   ```bash
-   pip install -r requirements.txt
-   ```
+2.  **Setup The Virtual Environment**
 
-3. **Environment Variables**
+    It's highly recommended to use a virtual environment to manage your project's dependencies.
 
-   Create a `.env` file from the example:
+    ```bash
+    python -m venv venv
+    source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
+    ```
 
-   ```bash
-   cp .env.example .env
-   ```
+3.  **Install Dependencies**
 
-   Then, edit the `.env` file with your settings. See the `.env.example` file for detailed explanations of each variable. This now includes optional configuration for Cloudflare R2 storage.
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-4. **Database Setup**
+4.  **Review Environment Variables**
 
-   ```bash
-   python manage.py migrate
-   python manage.py createsuperuser
-   ```
+    A `.env` file has been automatically created for you with a new `SECRET_KEY`. You may want to review this file and customize other settings (like database credentials) for your local environment.
 
-5. **Run Development Server**
+5.  **Run Database Migrations**
 
-   ```bash
-   python manage.py runserver
-   ```
+    This will set up your project's database schema.
 
-6. **(Optional) Create Dummy Data**
+    ```bash
+    python manage.py migrate
+    ```
 
-   To populate the database with some sample data for testing, you can run the following command:
+6.  **Create a Superuser**
 
-   ```bash
-   python manage.py create_dummy_todos
-   ```
+    You'll need an admin account to access the dashboard.
+
+    ```bash
+    python manage.py createsuperuser
+    ```
+
+7.  **Run the Development Server**
+
+    ```bash
+    python manage.py runserver
+    ```
+
+    Your new Django project is now running at `http://localhost:8000`.
 
 ## API Endpoints
 
-- **Admin API Root**: `http://localhost:8000/api/admin/`
-- **Dashboard Analytics**: `http://localhost:8000/api/admin/dashboard-stats/`
-- **API for a model**: `http://localhost:8000/api/admin/models/<model-name>/`
-- **Blog API**:
-  - Posts: `http://localhost:8000/api/blog/posts/`
-  - Categories: `http://localhost:8000/api/blog/categories/`
-  - Tags: `http://localhost:8000/api/blog/tags/`
-  - Search: `http://localhost:8000/api/blog/search/?q=<query>`
-- **Traditional Admin**: `http://localhost:8000/admin/`
-- **API Schema**:
-  - `http://localhost:8000/api/schema/` (Download OpenAPI Schema)
-  - `http://localhost:8000/api/schema/swagger-ui/` (Swagger UI)
-  - `http://localhost:8000/api/schema/redoc/` (Redoc)
-
-## Authentication Flow
-
-This project uses JWT for authentication. Here is a summary of the authentication and user management endpoints.
-
-### 1. Token Management
-
-- **Get Tokens (Login Step 1)**: `POST /api/token/`
-
-  - Provide `username` and `password`.
-  - If 2FA is **disabled**, this returns `access` and `refresh` tokens directly.
-  - If 2FA is **enabled**, it returns a temporary message: `{"detail": "OTP required.", "is_2fa_enabled": true}`.
-
-- **Verify 2FA and Get Tokens (Login Step 2)**: `POST /api/auth/token/verify/`
-
-  - If 2FA is enabled, use this endpoint.
-  - Provide `username`, `password`, and the `otp` from an authenticator app.
-  - On success, this returns the final `access` and `refresh` tokens.
-  - _Note: If you receive an "Invalid OTP" error, please ensure your phone's clock is synchronized with an internet time server._
-
-- **Refresh Token**: `POST /api/token/refresh/`
-  - Provide the `refresh` token to get a new `access` token.
-
-### 2. Password Reset
-
-- **Request Reset**: `POST /api/auth/password_reset/`
-  - Provide the user's `email` to receive a password reset link.
-- **Confirm Reset**: `POST /api/auth/password_reset/confirm/`
-  - Provide the `token` from the email and a `new_password`.
-
-### 3. Account Management (Authenticated)
-
-These endpoints require an active `access` token in the authorization header.
-
-- **User Profile**:
-  - `GET /api/auth/me/`: Retrieve the current user's profile (`
+- **Admin API Root**: `
