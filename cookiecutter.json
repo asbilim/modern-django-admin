@@ -1,0 +1,11 @@
+{
+  "project_name": "Modern Dashboard",
+  "project_slug": "{{ cookiecutter.project_name.lower().replace(' ', '_').replace('-', '_') }}",
+  "description": "A modern Django admin interface with auto-generated REST API for any Django project.",
+  "author_name": "asbilim",
+  "author_email": "{{ cookiecutter.author_name.lower().replace(' ', '.') }}@example.com",
+  "version": "0.1.0",
+  "use_blog_app": ["yes", "no"],
+  "use_shop_app": ["yes", "no"],
+  "use_newsletter_app": ["yes", "no"]
+}
