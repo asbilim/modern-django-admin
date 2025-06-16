@@ -2,7 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
     PostViewSet, CategoryViewSet, TagViewSet, CommentViewSet,
-    AuthorViewSet, NewsletterViewSet, SearchAPIView,
+    AuthorViewSet, SearchAPIView,
     CommentListCreateView, PostFeedView, BlogStatsView
 )
 
@@ -12,7 +12,6 @@ router.register(r'categories', CategoryViewSet, basename='category')
 router.register(r'tags', TagViewSet, basename='tag')
 router.register(r'comments', CommentViewSet, basename='comment')
 router.register(r'authors', AuthorViewSet, basename='author')
-router.register(r'newsletter', NewsletterViewSet, basename='newsletter')
 
 app_name = 'blog'
 

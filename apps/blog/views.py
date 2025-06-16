@@ -7,12 +7,12 @@ from django.contrib.auth.models import User
 from django.db.models import F, Q
 from django.shortcuts import get_object_or_404
 
-from .models import Post, Comment, Newsletter, PostLike
+from .models import Post, Comment, PostLike
 from apps.core.models import Category, Tag
 from .serializers import (
     PostListSerializer, PostDetailSerializer, CategorySerializer,
     TagSerializer, CommentSerializer, CommentCreateSerializer,
-    AuthorSerializer, NewsletterSerializer
+    AuthorSerializer
 )
 from .permissions import IsAuthorOrReadOnly, IsAdminOrReadOnly, CanModerateComments
 from .pagination import BlogPagination
@@ -139,11 +139,6 @@ class CommentViewSet(viewsets.ModelViewSet):
         post = get_object_or_404(Post, pk=post_id)
         user = self.request.user if self.request.user.is_authenticated else None
         serializer.save(post=post, user=user, is_approved=False) 
-
-class NewsletterViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
-    queryset = Newsletter.objects.all()
-    serializer_class = NewsletterSerializer
-    permission_classes = [AllowAny]
 
 class SearchAPIView(generics.ListAPIView):
     serializer_class = PostListSerializer

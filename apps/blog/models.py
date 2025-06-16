@@ -107,22 +107,6 @@ class PostLike(models.Model):
     def __str__(self):
         return f"{self.user} likes {self.post}"
 
-class Newsletter(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    email = models.EmailField(unique=True, verbose_name=_('Email'))
-    is_active = models.BooleanField(default=True, verbose_name=_('Is Active'))
-    unsubscribe_token = models.UUIDField(default=uuid.uuid4, editable=False)
-    subscribed_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Subscribed At'))
-    confirmed_at = models.DateTimeField(null=True, blank=True, verbose_name=_('Confirmed At'))
-
-    class Meta:
-        verbose_name = _('Newsletter Subscription')
-        verbose_name_plural = _('Newsletter Subscriptions')
-        ordering = ['-subscribed_at']
-
-    def __str__(self):
-        return self.email
-
 class PostView(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='views', verbose_name=_('Post'))

@@ -41,6 +41,8 @@ LOCAL_APPS = [
     'apps.site_config',
     'apps.todo',
     'apps.site_identity',
+    'apps.shop',
+    'apps.newsletter',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -236,4 +238,8 @@ BLOG_API_SETTINGS = {
 # Admin site configuration
 ADMIN_SITE_HEADER = 'Django Admin API'
 ADMIN_SITE_TITLE = 'Admin API'
-ADMIN_INDEX_TITLE = 'Welcome to Admin API' 
+ADMIN_INDEX_TITLE = 'Welcome to Admin API'
+
+ADMINS = [
+    ('Admin', 'admin@example.com'),
+] 

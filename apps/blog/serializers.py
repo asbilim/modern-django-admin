@@ -1,7 +1,7 @@
 # apps/blog/serializers.py
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Post, Comment, Newsletter
+from .models import Post, Comment
 from apps.core.models import Category, Tag
 from .validators import validate_profanity
 
@@ -130,14 +130,4 @@ class CommentCreateSerializer(serializers.ModelSerializer):
             return self.context['request'].user.email
         if not value:
             raise serializers.ValidationError("Author email is required for anonymous users.")
-        return value
-
-class NewsletterSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Newsletter
-        fields = ('email',)
-
-    def validate_email(self, value):
-        if Newsletter.objects.filter(email__iexact=value).exists():
-            raise serializers.ValidationError("This email is already subscribed.")
         return value 
