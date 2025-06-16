@@ -48,6 +48,9 @@ def main():
     if '{{ cookiecutter.use_newsletter_app }}' != 'yes':
         remove_dir(os.path.join(project_directory, 'apps/newsletter'))
 
+    if '{{ cookiecutter.use_todo_app }}' != 'yes':
+        remove_dir(os.path.join(project_directory, 'apps/todo'))
+
     print("SUCCESS: Project setup complete.")
 
 if __name__ == '__main__':

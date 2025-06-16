@@ -9,8 +9,12 @@ from django.db.models import Count
 from django.db.models.functions import TruncMonth
 from django.contrib import admin
 
+{% if cookiecutter.use_blog_app == 'yes' %}
 from apps.blog.models import Post, Comment
+{% endif %}
+{% if cookiecutter.use_todo_app == 'yes' %}
 from apps.todo.models import Task, Project
+{% endif %}
 from apps.core.models import Category, Tag
 
 class DashboardStatsView(APIView):
@@ -27,14 +31,6 @@ class DashboardStatsView(APIView):
         new_users_count = User.objects.filter(date_joined__gte=thirty_days_ago).count()
         total_users_count = User.objects.count()
         
-        pending_tasks_count = Task.objects.filter(status__in=['todo', 'in_progress']).count()
-        total_tasks_count = Task.objects.count()
-
-        total_projects_count = Project.objects.count()
-        new_projects_count = Project.objects.filter(created_at__gte=thirty_days_ago).count()
-        
-        total_posts_count = Post.objects.count()
-
         stats = [
             {
                 "title": "Total Users",
@@ -43,13 +39,25 @@ class DashboardStatsView(APIView):
                 "icon": "users",
                 "description": "Since last 30 days"
             },
-            { 
-                "title": "Total Posts", 
-                "value": f"{total_posts_count:,}", 
-                "change": f"+{Post.objects.filter(published_at__gte=thirty_days_ago).count()}",
-                "icon": "file-text",
-                "description": "Published in last 30 days"
-            },
+        ]
+        
+        {% if cookiecutter.use_blog_app == 'yes' %}
+        total_posts_count = Post.objects.count()
+        stats.append({ 
+            "title": "Total Posts", 
+            "value": f"{total_posts_count:,}", 
+            "change": f"+{Post.objects.filter(published_at__gte=thirty_days_ago).count()}",
+            "icon": "file-text",
+            "description": "Published in last 30 days"
+        })
+        {% endif %}
+        
+        {% if cookiecutter.use_todo_app == 'yes' %}
+        pending_tasks_count = Task.objects.filter(status__in=['todo', 'in_progress']).count()
+        total_tasks_count = Task.objects.count()
+        total_projects_count = Project.objects.count()
+        new_projects_count = Project.objects.filter(created_at__gte=thirty_days_ago).count()
+        stats.extend([
             { 
                 "title": "Pending Tasks", 
                 "value": f"{pending_tasks_count}",
@@ -64,8 +72,9 @@ class DashboardStatsView(APIView):
                 "icon": "briefcase",
                 "description": "Since last 30 days"
             },
-        ]
-        
+        ])
+        {% endif %}
+
         # === 2. User Signups Over Time ===
         user_signups = User.objects.filter(date_joined__gte=timezone.now() - timedelta(days=365))
         user_signups = user_signups.annotate(month=TruncMonth('date_joined'))
@@ -91,10 +100,11 @@ class DashboardStatsView(APIView):
                     })
         
         # === 4. Recent Activity ===
+        activity_feed = []
+        {% if cookiecutter.use_blog_app == 'yes' %}
         recent_posts = Post.objects.order_by('-created_at')[:5]
         recent_comments = Comment.objects.order_by('-created_at')[:5]
         
-        activity_feed = []
         for post in recent_posts:
             activity_feed.append({
                 'type': 'new_post',
@@ -109,6 +119,7 @@ class DashboardStatsView(APIView):
                 'user': comment.author_name,
                 'timestamp': comment.created_at
             })
+        {% endif %}
         
         # Sort combined feed by timestamp
         activity_feed.sort(key=lambda x: x['timestamp'], reverse=True)

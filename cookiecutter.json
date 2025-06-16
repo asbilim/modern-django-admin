@@ -7,5 +7,6 @@
   "version": "0.1.0",
   "use_blog_app": ["yes", "no"],
   "use_shop_app": ["yes", "no"],
-  "use_newsletter_app": ["yes", "no"]
+  "use_newsletter_app": ["yes", "no"],
+  "use_todo_app": ["yes", "no"]
 }
