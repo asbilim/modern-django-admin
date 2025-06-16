@@ -7,7 +7,7 @@ from datetime import timedelta
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY', default='your-secret-key-change-this')
+SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
@@ -35,14 +35,13 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = [
-    'admin_api',
+    'apps.admin_api',
     'apps.core',
-    'apps.blog',
     'apps.site_config',
-    'apps.todo',
     'apps.site_identity',
-    'apps.shop',
-    'apps.newsletter',
+{% if cookiecutter.use_blog_app == 'yes' %}    'apps.blog',{% endif %}
+{% if cookiecutter.use_shop_app == 'yes' %}    'apps.shop',{% endif %}
+{% if cookiecutter.use_newsletter_app == 'yes' %}    'apps.newsletter',{% endif %}
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -176,9 +175,9 @@ REST_FRAMEWORK = {
 
 # DRF Spectacular Settings
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'Django Admin API',
-    'DESCRIPTION': 'A modern Django admin interface with auto-generated REST API for any Django project.',
-    'VERSION': '1.0.0',
+    'TITLE': '{{ cookiecutter.project_name }} API',
+    'DESCRIPTION': '{{ cookiecutter.description }}',
+    'VERSION': '{{ cookiecutter.version }}',
     'SERVE_INCLUDE_SCHEMA': False,
     # OTHER SETTINGS
 }
@@ -236,10 +235,10 @@ BLOG_API_SETTINGS = {
 }
 
 # Admin site configuration
-ADMIN_SITE_HEADER = 'Django Admin API'
-ADMIN_SITE_TITLE = 'Admin API'
-ADMIN_INDEX_TITLE = 'Welcome to Admin API'
+ADMIN_SITE_HEADER = '{{ cookiecutter.project_name }}'
+ADMIN_SITE_TITLE = '{{ cookiecutter.project_name }} Admin'
+ADMIN_INDEX_TITLE = 'Welcome to {{ cookiecutter.project_name }} Admin'
 
 ADMINS = [
-    ('Admin', 'admin@example.com'),
+    ('{{cookiecutter.author_name}}', '{{cookiecutter.author_email}}'),
 ] 

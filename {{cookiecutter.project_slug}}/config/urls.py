@@ -14,8 +14,8 @@ admin.site.index_title = settings.ADMIN_INDEX_TITLE
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/admin/', include('admin_api.urls')),
-    path('api/blog/', include('apps.blog.urls', namespace='blog')),
+    path('api/admin/', include('apps.admin_api.urls')),
+    {% if cookiecutter.use_blog_app == 'yes' %}    path('api/blog/', include('apps.blog.urls', namespace='blog')),{% endif %}
     path('api/token/', TwoFactorTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     # User Profile Management
